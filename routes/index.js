@@ -1,4 +1,8 @@
-//redirect to main page for logout
-exports.logout = function(req, res, next) {
-	req.logout();
-}
+exports.user = require('./user');
+
+exports.index = function(req, res, next) {
+	//check for authenticated -- if so load game
+	if (req.user && req.isAuthenticated()) {
+		//user authenticated
+	}
+};
