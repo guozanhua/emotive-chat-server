@@ -84,21 +84,13 @@ app.get('/', routes.index);
 //to logout
 app.get('/logout', routes.user.logout);
 
-//route for facebook authentication and login
-app.get('/login/facebook', 
-	passport.authenticate('facebook', { 
-		scope : 'email'
-	})
+//route for login authentication
+app.get('/login', 
+  passport.authenticate('local', { failureRedirect: '/login' }),
+  function(req, res) {
+    res.redirect('/');
+  }
 );
-
-//handle callback after facebook has authenticated user
-app.get('/login/facebook/callback',
-	passport.authenticate('facebook', {
-		successRedirect: '/',
-		failureRedirect: '/'
-	})
-);
-
 
 //REST API routes
 app.all('/api', isAuthenticated);
