@@ -1,11 +1,9 @@
 //require dependencies
 var express = require('express');
 	routes = require('./routes'),
-	apiRoutes = require('./routes/api')
 	http = require('http'),
 	path = require('path'),
 	models = require('./models'),
-	jwt = require('jsonwebtoken'),
 	dbUrl = process.env.MONGOHQ_URL || 'mongodb://localhost:27017/chat';
 
 //mongoose
@@ -22,6 +20,7 @@ db.once('open', function (callback) {
 var logger = require('morgan'),
 	errorHandler = require('errorhandler'),
 	bodyParser = require('body-parser'),
+	jwt = require('jsonwebtoken'),
 	methodOverride = require('method-override');
 
 var app = express();
