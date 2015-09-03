@@ -59,9 +59,38 @@ else if ('production' == app.get('env')) {
 
 //REST API routes
 
+app.post('/api/signup', function(req, res) {
+	//async. User.findOne won't fire unless data is sent back
+	process.nextTick(function() {
+		User.findOne( {
+			email: req.body.email
+		}, function(err, user) {
+			if (err) throw err;
+			if (user) {
+				res.json({ success: false, message: 'Signup failed! User with given email already exists.' });
+			}
+			else {
+				var newUser = new User();
+				newUser.email = req.body.email;
+				newUser.password = newUser.generateHash(req.body.password);
+
+				newUser.save(function(err){
+					if (err) {
+						throw err;
+					}
+					res.json({
+						success: true,
+						message: 'User successfully created!',
+					});
+				});
+			}
+		});
+	});
+});
+
 app.post('/api/authenticate', function(req, res) {
 	User.findOne({
-		name: req.body.email
+		email: req.body.email
 	}, function(err, user) {
 		if (err) throw err;
 		if (!user) {
