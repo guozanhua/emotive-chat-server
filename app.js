@@ -1,9 +1,11 @@
 //require dependencies
 var express = require('express');
 	routes = require('./routes'),
+	apiRoutes = require('./routes/api')
 	http = require('http'),
 	path = require('path'),
 	models = require('./models'),
+	jwt = require('jsonwebtoken'),
 	dbUrl = process.env.MONGOHQ_URL || 'mongodb://localhost:27017/chat';
 
 //mongoose
@@ -14,9 +16,6 @@ db.on('error', console.error.bind(console, 'connection error:'));
 db.once('open', function (callback) {
 
 });
-
-//passport
-var passport = require('passport');
 
 
 //middleware
@@ -38,9 +37,9 @@ app.use(function(req, res, next) {
 	return next();
 });
 
-
 //configure settings
 app.set('port', process.env.PORT || 3003);
+app.set('secret', process.env.SECRET || 'supersecret');
 
 //use middleware
 app.use(logger('dev'));
@@ -49,22 +48,6 @@ app.use(bodyParser.urlencoded());
 app.use(methodOverride());
 app.use(require('stylus').middleware(__dirname + 'public'));
 app.use(express.static(path.join(__dirname, 'public')));
-
-//authentication
-app.use(cookieParser('3CCC4ACD-6ED1-4844-9217-82131BDCB239'));
-app.use(session({secret: '2C44774A-D649-4D44-9535-46E296EF984F'}));
-app.use(passport.initialize());
-app.use(passport.session()); // persistent login for session
-
-var initPassport = require('./passport/init');
-initPassport(passport);
-
-//passport adds .isAuthenticated to req
-var isAuthenticated = function(req, res, next) {
-	if (req.isAuthenticated())
-		return next();
-}
-
 
 //error handling if environment is development
 if ('development' == app.get('env')) {
@@ -77,24 +60,39 @@ else if ('production' == app.get('env')) {
 	app.use(errorHandler());
 }
 
-
-//pages & routes
-app.get('/', routes.index);
-
-//to logout
-app.get('/logout', routes.user.logout);
-
-//route for login authentication
-app.get('/login', 
-  passport.authenticate('local', { failureRedirect: '/login' }),
-  function(req, res) {
-    res.redirect('/');
-  }
-);
-
 //REST API routes
-app.all('/api', isAuthenticated);
 
+app.post('/api/authenticate', function(req, res) {
+	User.findOne({
+		name: req.body.email
+	}, function(err, user) {
+		if (err) throw err;
+		if (!user) {
+			console.log('No user with that email found');
+		}
+		else {
+			if (user.validPassword(req.body.password)) {
+				var token = jwt.sign(user, app.get('secret'), {
+					expiresInMinutes: 1440 // expires in 24 hours
+				});
+
+				res.json({
+					success: true,
+					message: 'Token successfully generated!',
+					token: token
+				});
+			}
+			else {
+				console.log('Wrong password');
+			}
+		}
+	}
+});
+
+//add authentication middleware middleware -- NEEDS TO BE AFTER api/authenticate
+app.all('/api', function(req, res, next), {
+	
+});
 
 //catch-all error 404 response
 app.all('*', function(req, res) {

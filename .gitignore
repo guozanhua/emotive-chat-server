@@ -3,3 +3,4 @@ node_modules/
 public/.DS_Store
 public/css/.DS_Store
 public/img/.DS_Store
+npm-debug.log
