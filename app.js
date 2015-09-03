@@ -19,10 +19,8 @@ db.once('open', function (callback) {
 
 
 //middleware
-var session = require('express-session'),
-	logger = require('morgan'),
+var logger = require('morgan'),
 	errorHandler = require('errorhandler'),
-	cookieParser = require('cookie-parser'),
 	bodyParser = require('body-parser'),
 	methodOverride = require('method-override');
 
@@ -68,7 +66,7 @@ app.post('/api/authenticate', function(req, res) {
 	}, function(err, user) {
 		if (err) throw err;
 		if (!user) {
-			console.log('No user with that email found');
+			res.json({ success: false, message: 'Authentication failed. User not found' });
 		}
 		else {
 			if (user.validPassword(req.body.password)) {
@@ -83,15 +81,33 @@ app.post('/api/authenticate', function(req, res) {
 				});
 			}
 			else {
-				console.log('Wrong password');
+				res.json({ success: false, message: 'Authentication failed. Wrong password.' });
 			}
 		}
-	}
+	});
 });
 
 //add authentication middleware middleware -- NEEDS TO BE AFTER api/authenticate
-app.all('/api', function(req, res, next), {
-	
+app.all('/api', function(req, res, next) {
+	var token = req.body.token || req.query.token || req.headers['X-Auth-Token'];
+
+	if (token) {
+		jwt.verify(token, app.get('secret'), function(err, decoded) {
+			if (err) {
+				return res.json({ success: false, message: 'Failed to authenticate token.' });
+			}
+			else {
+				req.decoded = decoded;
+				next();
+			}
+		});
+	}
+	else {
+		return res.status(403).send({
+			success: false,
+			message: 'No token provided.'
+		});
+	}
 });
 
 //catch-all error 404 response
