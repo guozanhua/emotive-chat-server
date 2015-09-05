@@ -105,7 +105,7 @@ app.post('/api/authenticate', function(req, res) {
 				res.json({
 					success: true,
 					message: 'Token successfully generated!',
-					user: user
+					user: user,
 					token: token
 				});
 			}
