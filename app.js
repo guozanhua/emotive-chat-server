@@ -109,6 +109,7 @@ app.post('/api/authenticate', function(req, res) {
 					email: user.email,
 					firstName: user.firstName,
 					lastName: user.lastName,
+					friends: user.friends,
 					token: token
 				});
 			}
