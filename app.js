@@ -61,15 +61,15 @@ else if ('production' == app.get('env')) {
 
 app.post('/api/signup', function(req, res) {
 	//async. User.findOne won't fire unless data is sent back
-	process.nextTick(function() {console.log("1");
+	process.nextTick(function() {
 		models.User.findOne( {
 			email: req.body.email
 		}, function(err, user) {
 			if (err) throw err;
-			if (user) {console.log("2");
+			if (user) {
 				res.json({ success: false, message: 'Signup failed! User with given email already exists.' });
 			}
-			else {console.log("3");
+			else {
 
 				var newUser = new models.User();
 
@@ -77,9 +77,6 @@ app.post('/api/signup', function(req, res) {
 				newUser.lastName = req.body.lastName;
 				newUser.email = req.body.email;
 				newUser.password = newUser.generateHash(req.body.password);
-
-				console.log(newUser.firstName);
-
 
 				newUser.save(function(err){
 					if (err) {
