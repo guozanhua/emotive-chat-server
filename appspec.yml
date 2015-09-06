@@ -5,6 +5,10 @@ files:
     destination: /emotive-chat-server/
 hooks:
   ApplicationStart:
-    - location: scripts
+    - location: start-script
       timeout: 300
       runas: root
+  AplicationStop:
+    - location: stop-script
+    timeout: 300
+    runas: root

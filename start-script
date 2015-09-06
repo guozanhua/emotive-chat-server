@@ -1,2 +1,2 @@
 sudo service mongod start
-app/make
+emotive-chat-server/make
