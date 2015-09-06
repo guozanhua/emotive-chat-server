@@ -61,18 +61,25 @@ else if ('production' == app.get('env')) {
 
 app.post('/api/signup', function(req, res) {
 	//async. User.findOne won't fire unless data is sent back
-	process.nextTick(function() {
-		User.findOne( {
+	process.nextTick(function() {console.log("1");
+		models.User.findOne( {
 			email: req.body.email
 		}, function(err, user) {
 			if (err) throw err;
-			if (user) {
+			if (user) {console.log("2");
 				res.json({ success: false, message: 'Signup failed! User with given email already exists.' });
 			}
-			else {
-				var newUser = new User();
+			else {console.log("3");
+
+				var newUser = new models.User();
+
+				newUser.firstName = req.body.firstName;
+				newUser.lastName = req.body.lastName;
 				newUser.email = req.body.email;
 				newUser.password = newUser.generateHash(req.body.password);
+
+				console.log(newUser.firstName);
+
 
 				newUser.save(function(err){
 					if (err) {
@@ -89,7 +96,7 @@ app.post('/api/signup', function(req, res) {
 });
 
 app.post('/api/authenticate', function(req, res) {
-	User.findOne({
+	models.User.findOne({
 		email: req.body.email
 	}, function(err, user) {
 		if (err) throw err;
