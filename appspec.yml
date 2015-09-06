@@ -4,11 +4,15 @@ files:
   - source: /
     destination: /emotive-chat-server/
 hooks:
+  BeforeInstall:
+    - location: /scripts/install-script
+      timeout: 300
+      runas: root
   ApplicationStart:
-    - location: start-script
+    - location: /scripts/start-script
       timeout: 300
       runas: root
   AplicationStop:
-    - location: stop-script
+    - location: /scripts/stop-script
       timeout: 300
       runas: root
