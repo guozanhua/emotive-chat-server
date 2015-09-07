@@ -1,3 +1,4 @@
 sudo service mongod start
 cd /home/ec2-user/app
+sudo npm install
 make
