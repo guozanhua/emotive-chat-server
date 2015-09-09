@@ -80,15 +80,23 @@ app.post('/api/signup', function(req, res) {
 				newUser.password = newUser.generateHash(req.body.password);
 				newUser.uuid = uuident.v4()
 
-				newUser.save(function(err){
-					if (err) {
-						throw err;
-					}
-					res.json({
-						success: true,
-						message: 'User successfully created!',
+				if (newUser.firstName && newUser.lastName && newUser.email && newUser.password && newUser.uuid) {
+					newUser.save(function(err){
+						if (err) {
+							throw err;
+						}
+						res.json({
+							success: true,
+							message: 'User successfully created!',
+						});
 					});
-				});
+				}
+				else {
+					res.json({
+						success: false,
+						message: 'Failed to generate new user. At least one field is missing',
+					});
+				}
 			}
 		});
 	});
