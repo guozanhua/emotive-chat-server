@@ -2,9 +2,17 @@ version: 0.0
 os: linux
 files:
   - source: /
-    destination: /emotive-chat-server/
+    destination: /home/ec2-user/app
 hooks:
+  BeforeInstall:
+    - location: /scripts/install-script
+      timeout: 300
+      runas: root
   ApplicationStart:
-    - location: scripts
+    - location: /scripts/start-script
+      timeout: 300
+      runas: root
+  AplicationStop:
+    - location: /scripts/stop-script
       timeout: 300
       runas: root

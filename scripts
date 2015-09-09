@@ -1,2 +1,0 @@
-sudo service mongod start
-app/make
