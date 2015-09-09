@@ -22,6 +22,7 @@ var logger = require('morgan'),
 	bodyParser = require('body-parser'),
 	jwt = require('jsonwebtoken'),
 	methodOverride = require('method-override');
+	uuident = require('node-uuid');
 
 var app = express();
 app.locals.appTitle = 'Chat';
@@ -77,6 +78,7 @@ app.post('/api/signup', function(req, res) {
 				newUser.lastName = req.body.lastName;
 				newUser.email = req.body.email;
 				newUser.password = newUser.generateHash(req.body.password);
+				newUser.uuid = uuident.v4()
 
 				newUser.save(function(err){
 					if (err) {
