@@ -60,6 +60,41 @@ else if ('production' == app.get('env')) {
 
 //REST API routes
 
+app.put('/api/user', function(req, res) {
+	//async. User.findOne won't fire unless data is sent back
+	process.nextTick(function() {
+		models.User.findOne( {
+			uuid: req.body.uuid
+		}, function(err, user) {
+			if (err) throw err;
+			if (!user) {
+				res.json({ success: false, message: 'Update failed! User not found.' });
+			}
+			else {
+
+				if (req.body.firstName && req.body.lastName && req.body.email) {
+					user.firstName = req.body.firstName;
+					user.lastName = req.body.lastName;
+					user.email = req.body.email;
+				}
+				if (req.body.password) {
+					user.password = user.generateHash(req.body.password);
+				}
+
+				user.save(function(err){
+					if (err) {
+						throw err;
+					}
+					res.json({
+						success: true,
+						message: 'User successfully updated!',
+					});
+				});
+			}
+		});
+	});
+});
+
 app.post('/api/signup', function(req, res) {
 	//async. User.findOne won't fire unless data is sent back
 	process.nextTick(function() {
