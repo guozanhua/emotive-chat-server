@@ -61,37 +61,115 @@ else if ('production' == app.get('env')) {
 //REST API routes
 
 app.put('/api/user', function(req, res) {
-	//async. User.findOne won't fire unless data is sent back
-	process.nextTick(function() {
-		models.User.findOne( {
-			uuid: req.body.uuid
-		}, function(err, user) {
-			if (err) throw err;
-			if (!user) {
-				res.json({ success: false, message: 'Update failed! User not found.' });
+	models.User.findOne( {
+		uuid: req.body.uuid
+	}, function(err, user) {
+		if (err) throw err;
+		if (!user) {
+			res.json({ success: false, message: 'Update failed! User not found.' });
+		}
+		else {
+			if (req.body.firstName && req.body.lastName && req.body.email) {
+				user.firstName = req.body.firstName;
+				user.lastName = req.body.lastName;
+				user.email = req.body.email;
 			}
-			else {
-
-				if (req.body.firstName && req.body.lastName && req.body.email) {
-					user.firstName = req.body.firstName;
-					user.lastName = req.body.lastName;
-					user.email = req.body.email;
+			if (req.body.password) {
+				user.password = user.generateHash(req.body.password);
+			}
+			if (req.body.friends) {
+				for (var i = 0; i < req.body.friends.length; i++) {
+					user.friends.push(req.body.friends[i]);
 				}
-				if (req.body.password) {
-					user.password = user.generateHash(req.body.password);
-				}
+			}
 
-				user.save(function(err){
-					if (err) {
-						throw err;
-					}
-					res.json({
-						success: true,
-						message: 'User successfully updated!',
-					});
+			user.save(function(err){
+				if (err) {
+					throw err;
+				}
+				res.json({
+					success: true,
+					message: 'User successfully updated!',
 				});
-			}
-		});
+			});
+		}
+	});
+});
+
+app.get('/api/user', function(req, res) {
+	models.User.findOne( {
+		uuid: req.query.uuid
+	}, function(err, user) {
+		if (err) throw err;
+		if (!user) {
+			res.json({ success: false, message: 'Get failed! User not found.' });
+		}
+		else {
+			
+			var friendsNameAndUuid = [];
+			var friendUsers = db.collection('users').find( { uuid: { $in: user.friends } } );
+			friendUsers.each(function(err, friend) {
+				if (err) throw err;
+				if (friend == null) {
+
+					if (friendsNameAndUuid) {
+						res.json({
+							success: true,
+							message: 'Found all friend names!',
+							friends: friendsNameAndUuid
+						});
+					}
+					else {
+						res.json({ success: false, message: "Could not get user info!" });
+					}
+				}
+				else {
+					if(friend.uuid!=null){
+						var nameAndUuid = [friend.firstName.concat(" ").concat(friend.lastName), friend.uuid];
+						friendsNameAndUuid.push(nameAndUuid);
+					}
+					
+				}
+			});
+		}
+	});
+});
+
+app.get('/api/friends', function(req, res) {
+	models.User.findOne( {
+		uuid: req.query.uuid
+	}, function(err, user) {
+		if (err) throw err;
+		if (!user) {
+			res.json({ success: false, message: 'Get failed! User not found.' });
+		}
+		else {
+			var friendsNameAndUuid = [];
+			var otherUsers = db.collection('users').find( { uuid: { $nin: user.friends } } );
+			otherUsers.each(function(err, other) {
+				if (err) throw err;
+				if (other == null) {
+
+					if (friendsNameAndUuid) {
+						res.json({
+							success: true,
+							message: 'Found all friend names!',
+							friends: friendsNameAndUuid
+						});
+					}
+					else {
+						res.json({ success: false, message: "Could not get user info!" });
+					}
+				}
+				else {
+					if(other.uuid!=null){
+						var nameAndUuid = [other.firstName.concat(" ").concat(other.lastName), other.uuid];
+						friendsNameAndUuid.push(nameAndUuid);
+					}
+					
+				}
+			});
+		}
 	});
 });
 
