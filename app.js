@@ -135,9 +135,9 @@ app.get('/api/user', function(req, res) {
 	});
 });
 
-app.get('/api/friends', function(req, res) {
+app.get('/api/users', function(req, res) {
 	models.User.findOne( {
-		uuid: req.query.uuid
+		uuid: req.query.ignoreFriendsOfUserWithUuid
 	}, function(err, user) {
 		if (err) throw err;
 		if (!user) {
