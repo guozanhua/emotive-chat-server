@@ -77,9 +77,9 @@ app.put('/api/user', function(req, res) {
 			if (req.body.password) {
 				user.password = user.generateHash(req.body.password);
 			}
-			if (req.body.friends) {
-				for (var i = 0; i < req.body.friends.length; i++) {
-					user.friends.push(req.body.friends[i]);
+			if (req.body.newFriends) {
+				for (var i = 0; i < req.body.newFriends.length; i++) {
+					user.friends.push(req.body.newFriends[i]);
 				}
 			}
 
