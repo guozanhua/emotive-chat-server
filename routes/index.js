@@ -1,1 +1,1 @@
-exports.API = require('./api')
+exports.userAPI = require('./userAPI')
