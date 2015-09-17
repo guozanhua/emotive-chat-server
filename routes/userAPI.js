@@ -1,5 +1,5 @@
 // update users
-app.put('/api/users', function(req, res) {
+exports.updateUser = function(req, res) {
 	models.User.findOne( {
 		uuid: req.body.uuid
 	}, function(err, user) {
@@ -33,11 +33,13 @@ app.put('/api/users', function(req, res) {
 			});
 		}
 	});
-});
+};
 
 //get users
-app.get('/api/users', function(req, res) {
+exports.getUsers = function(req, res) {
 	//get a specific user
+	console.log("received request for user");
+	console.log(req.query.uuid);
 	if (req.query.uuid) {
 		models.User.findOne( {
 			uuid: req.query.uuid
@@ -47,36 +49,38 @@ app.get('/api/users', function(req, res) {
 				res.json({ success: false, message: 'Get failed! User not found.' });
 			}
 			else {
-				
-				var friendsNameAndUuid = [];
-				var friendUsers = db.collection('users').find( { uuid: { $in: user.friends } } );
-				friendUsers.each(function(err, friend) {
+				models.User.find( { 
+					uuid: { $in: user.friends } 
+				}, function(err, friends) {
 					if (err) throw err;
-					if (friend == null) {
-
-						if (friendsNameAndUuid) {
-							res.json({
-								success: true,
-								message: 'Found all friend names!',
-								friends: friendsNameAndUuid
-							});
-						}
-						else {
-							res.json({ success: false, message: "Could not get user info!" });
-						}
+					if (friends == null) {
+						res.json({
+							success: true,
+							message: 'No Friends Found',
+						});
 					}
 					else {
-						if(friend.uuid != null){
-							var nameAndUuid = [friend.firstName.concat(" ").concat(friend.lastName), friend.uuid];
-							friendsNameAndUuid.push(nameAndUuid);
+						var friendObjects = [];
+						for (var index in friends) {
+							var friend = friends[index];
+							if (err) {
+								throw err;
+							}
+							var friendObject = { "uuid" : friend.uuid, "firstName" : friend.firstName, "lastName" : friend.lastName };
+							friendObjects.push(friendObject);
+
 						}
-						
+						res.json({
+							success: true,
+							message: 'Friends successfully found',
+							friends: friendObjects
+						});
 					}
 				});
-			}
+			}			
 		});
 	}
-	//get all users excpet friends of given user
+	//get all users except friends of given user
 	else if (req.query.ignoreFriendsOfUserWithUuid) {
 		models.User.findOne( {
 			uuid: req.query.ignoreFriendsOfUserWithUuid
@@ -86,32 +90,28 @@ app.get('/api/users', function(req, res) {
 				res.json({ success: false, message: 'Get failed! User not found.' });
 			}
 			else {
-				var friendsNameAndUuid = [];
-				var otherUsers = db.collection('users').find( { uuid: { $nin: user.friends } } );
-				otherUsers.each(function(err, other) {
-					if (err) throw err;
-					if (other == null) {
-
-						if (friendsNameAndUuid) {
-							res.json({
-								success: true,
-								message: 'Found all friend names!',
-								friends: friendsNameAndUuid
-							});
-						}
-						else {
-							res.json({ success: false, message: "Could not get user info!" });
-						}
+				models.User.find( { 
+					uuid: { $nin: [user.uuid, user.friends] } 
+				}, function(err, potentialFriends) {
+					if (err) {
+						throw err;
 					}
-					else {
-						if(other.uuid!=null){
-							var nameAndUuid = [other.firstName.concat(" ").concat(other.lastName), other.uuid];
-							friendsNameAndUuid.push(nameAndUuid);
+					var potentialFriendObjects = [];
+					for (var index in potentialFriends) {
+						var potentialFriend = potentialFriends[index];
+						if (err) {
+							throw err;
 						}
-						
+						var potentialFriendObject = { "uuid" : potentialFriend.uuid, "firstName" : potentialFriend.firstName, "lastName" : potentialFriend.lastName };
+						potentialFriendObjects.push(potentialFriendObject);
 					}
+					res.json({
+						success: true,
+						message: 'Found potential friends',
+						potentialFriends: potentialFriendObjects
+					});
 				});
 			}
 		});
 	}
-});
+};

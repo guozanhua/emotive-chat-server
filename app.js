@@ -58,8 +58,8 @@ else if ('production' == app.get('env')) {
 	app.use(errorHandler());
 }
 
-//REST API routes
 
+//signup route
 app.post('/api/users', function(req, res) {
 	//async. User.findOne won't fire unless data is sent back
 	process.nextTick(function() {
@@ -102,6 +102,7 @@ app.post('/api/users', function(req, res) {
 	});
 });
 
+//authenticate
 app.post('/api/authenticate', function(req, res) {
 	models.User.findOne({
 		email: req.body.email
@@ -137,8 +138,9 @@ app.post('/api/authenticate', function(req, res) {
 //add authentication middleware middleware -- NEEDS TO BE AFTER api/authenticate
 app.all('/api', function(req, res, next) {
 	var token = req.body.token || req.query.token || req.headers['X-Auth-Token'];
-
+	console.log('middleware');
 	if (token) {
+		console.log('did have token');
 		jwt.verify(token, app.get('secret'), function(err, decoded) {
 			if (err) {
 				return res.json({ success: false, message: 'Failed to authenticate token.' });
@@ -150,6 +152,7 @@ app.all('/api', function(req, res, next) {
 		});
 	}
 	else {
+		console.log('did not have token');
 		return res.status(403).send({
 			success: false,
 			message: 'No token provided.'
@@ -157,9 +160,14 @@ app.all('/api', function(req, res, next) {
 	}
 });
 
+//REST API routes
+
+app.put('/api/users', routes.userAPI.updateUser);
+app.get('/api/users', routes.userAPI.getUsers);
+
 //catch-all error 404 response
 app.all('*', function(req, res) {
-	res.send(404);
+	res.sendStatus(404);
 });
 
 //start server
