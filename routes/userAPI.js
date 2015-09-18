@@ -73,8 +73,12 @@ exports.getUsers = function(req, res) {
 				res.json({ success: false, message: 'Get failed! User not found.' });
 			}
 			else {
+				var uuidsToExclude = [user.uuid];
+				for (var index in user.friends) {
+					uuidsToExclude.push(user.friends[index]);
+				}
 				models.User.find( { 
-					uuid: { $nin: [user.uuid, user.friends] } 
+					uuid: { $nin: uuidsToExclude } 
 				}, function(err, potentialFriends) {
 					if (err) {
 						throw err;
