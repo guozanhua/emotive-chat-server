@@ -1,7 +1,7 @@
 // update users
 exports.updateUser = function(req, res) {
 	models.User.findOne( {
-		uuid: req.body.uuid
+		uuid: req.params.uuid
 	}, function(err, user) {
 		if (err) throw err;
 		if (!user) {
@@ -63,49 +63,8 @@ exports.updateUser = function(req, res) {
 
 //get users
 exports.getUsers = function(req, res) {
-	//get a specific user
-	if (req.query.uuid) {
-		models.User.findOne( {
-			uuid: req.query.uuid
-		}, function(err, user) {
-			if (err) throw err;
-			if (!user) {
-				res.json({ success: false, message: 'Get failed! User not found.' });
-			}
-			else {
-				models.User.find( { 
-					uuid: { $in: user.friends } 
-				}, function(err, friends) {
-					if (err) throw err;
-					if (friends == null) {
-						res.json({
-							success: true,
-							message: 'No Friends Found',
-						});
-					}
-					else {
-						var friendObjects = [];
-						for (var index in friends) {
-							var friend = friends[index];
-							if (err) {
-								throw err;
-							}
-							var friendObject = { "uuid" : friend.uuid, "firstName" : friend.firstName, "lastName" : friend.lastName };
-							friendObjects.push(friendObject);
-
-						}
-						res.json({
-							success: true,
-							message: 'Friends successfully found',
-							friends: friendObjects
-						});
-					}
-				});
-			}			
-		});
-	}
 	//get all users except friends of given user
-	else if (req.query.ignoreFriendsOfUserWithUuid) {
+	if (req.query.ignoreFriendsOfUserWithUuid) {
 		models.User.findOne( {
 			uuid: req.query.ignoreFriendsOfUserWithUuid
 		}, function(err, user) {
@@ -138,4 +97,92 @@ exports.getUsers = function(req, res) {
 			}
 		});
 	}
+	//get all users
+	else {
+		models.User.find({}, function(err, users) {
+			if (err) throw err;
+			if (!users) {
+				res.json({
+					success: false,
+					message: 'No users found'
+				});
+			}
+			else {
+				res.json({
+					success: true,
+					message: 'Successfully found users',
+					users: users
+				});
+			}
+		});
+	}
 };
+
+//get a specific user
+exports.getUser = function(req, res) {
+	models.User.findOne( {
+		uuid: req.params.uuid
+	}, function(err, user) {
+		if (err) throw err;
+		if (!user) {
+			res.json({ success: false, message: 'Get failed! User not found.' });
+		}
+		else {
+			var userObject = { 
+				"uuid": user.uuid,
+				"email": user.email,
+				"firstName": user.firstName,
+				"lastName": user.lastName,
+				"friends": user.friends
+			}
+			res.json({
+				success: true,
+				message: 'User successfully found!',
+				user: userObject
+			});
+		}
+	});
+}
+
+//get friends for user
+exports.getFriendsForUser = function(req, res) {
+	models.User.findOne( {
+		uuid: req.params.uuid
+	}, function(err, user) {
+		if (err) throw err;
+		if (!user) {
+			res.json({ success: false, message: 'Get failed! User not found.' });
+		}
+		else {
+			models.User.find( { 
+				uuid: { $in: user.friends } 
+			}, function(err, friends) {
+				if (err) throw err;
+				if (!friends) {
+					res.json({
+						success: true,
+						message: 'No Friends Found',
+					});
+				}
+				else {
+					var friendObjects = [];
+					for (var index in friends) {
+						var friend = friends[index];
+						if (err) {
+							throw err;
+						}
+						var friendObject = { 
+							"uuid" : friend.uuid, "firstName" : friend.firstName, "lastName" : friend.lastName 
+						};
+						friendObjects.push(friendObject);
+					}
+					res.json({
+						success: true,
+						message: 'Friends successfully found',
+						friends: friendObjects
+					});
+				}
+			});
+		}			
+	});
+}

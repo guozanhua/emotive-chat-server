@@ -161,8 +161,10 @@ app.all('/api', function(req, res, next) {
 
 //REST API routes
 
-app.put('/api/users', routes.userAPI.updateUser);
+app.put('/api/users/:uuid', routes.userAPI.updateUser);
 app.get('/api/users', routes.userAPI.getUsers);
+app.get('/api/users/:uuid', routes.userAPI.getUser);
+app.get('/api/users/:uuid/friends', routes.userAPI.getFriendsForUser);
 
 //catch-all error 404 response
 app.all('*', function(req, res) {
