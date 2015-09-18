@@ -8,29 +8,55 @@ exports.updateUser = function(req, res) {
 			res.json({ success: false, message: 'Update failed! User not found.' });
 		}
 		else {
-			if (req.body.firstName && req.body.lastName && req.body.email) {
-				user.firstName = req.body.firstName;
-				user.lastName = req.body.lastName;
-				user.email = req.body.email;
-			}
-			if (req.body.password) {
-				user.password = user.generateHash(req.body.password);
-			}
+			//if adding a friend
 			if (req.body.newFriends) {
 				for (var i = 0; i < req.body.newFriends.length; i++) {
-					user.friends.push(req.body.newFriends[i]);
+					var friendUUID = req.body.newFriends[i];
+					models.User.findOne( {
+						uuid: friendUUID
+					}, function(err, friend) {
+						if (err) throw err;
+						if (!friend) {
+							res.json({ success: false, message: 'Could not find friend.' });
+						}
+						else {
+							friend.friends.push(user.uuid);
+							user.friends.push(friendUUID);
+							user.save(function(err){
+								if (err) throw err;
+								friend.save(function(err) {
+									if (err) throw err;
+									res.json({
+										success: true,
+										message: 'Friend successfully added to user!',
+									});
+								});
+							});
+						}
+					});
 				}
 			}
-
-			user.save(function(err){
-				if (err) {
-					throw err;
+			//if updating settings
+			else {
+				if (req.body.firstName && req.body.lastName && req.body.email) {
+					user.firstName = req.body.firstName;
+					user.lastName = req.body.lastName;
+					user.email = req.body.email;
 				}
-				res.json({
-					success: true,
-					message: 'User successfully updated!',
+				if (req.body.password) {
+					user.password = user.generateHash(req.body.password);
+				}
+
+				user.save(function(err){
+					if (err) {
+						throw err;
+					}
+					res.json({
+						success: true,
+						message: 'User successfully updated!',
+					});
 				});
-			});
+			}
 		}
 	});
 };
@@ -38,8 +64,6 @@ exports.updateUser = function(req, res) {
 //get users
 exports.getUsers = function(req, res) {
 	//get a specific user
-	console.log("received request for user");
-	console.log(req.query.uuid);
 	if (req.query.uuid) {
 		models.User.findOne( {
 			uuid: req.query.uuid

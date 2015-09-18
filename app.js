@@ -58,7 +58,6 @@ else if ('production' == app.get('env')) {
 	app.use(errorHandler());
 }
 
-
 //signup route
 app.post('/api/users', function(req, res) {
 	//async. User.findOne won't fire unless data is sent back
