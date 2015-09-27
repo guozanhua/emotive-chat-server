@@ -135,11 +135,9 @@ app.post('/api/authenticate', function(req, res) {
 });
 
 //add authentication middleware middleware -- NEEDS TO BE AFTER api/authenticate
-app.all('/api', function(req, res, next) {
-	var token = req.body.token || req.query.token || req.headers['X-Auth-Token'];
-	console.log('middleware');
+app.all('/api/*', function(req, res, next) {
+	var token = req.body.token || req.query.token || req.headers['x-auth-token'];
 	if (token) {
-		console.log('did have token');
 		jwt.verify(token, app.get('secret'), function(err, decoded) {
 			if (err) {
 				return res.json({ success: false, message: 'Failed to authenticate token.' });
