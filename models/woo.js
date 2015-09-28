@@ -5,4 +5,4 @@ var wooSchema = new mongoose.Schema({
 	orderedImageFileNames: [String]
 });
 
-module.exports = mongoose.model('Message', wooSchema);
+module.exports = mongoose.model('Woo', wooSchema);
