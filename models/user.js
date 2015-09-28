@@ -3,11 +3,22 @@ var bcrypt = require('bcrypt')
 
 var userSchema = new mongoose.Schema({
 	uuid: String,
+	created_at: Date,
+	updated_at: Date,
 	firstName: String,
 	lastName: String,
 	email: String,
 	password: String,
 	friends: [String]
+});
+
+userSchema.pre('save', function(next){
+  now = new Date();
+  this.updated_at = now;
+  if ( !this.created_at ) {
+    this.created_at = now;
+  }
+  next();
 });
 
 userSchema.methods.generateHash = function(password) {
