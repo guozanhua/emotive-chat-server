@@ -9,7 +9,8 @@ var userSchema = new mongoose.Schema({
 	lastName: String,
 	email: String,
 	password: String,
-	friends: [String]
+	friends: [String],
+	conversations: [String]
 });
 
 userSchema.pre('save', function(next){

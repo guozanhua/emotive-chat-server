@@ -190,3 +190,47 @@ exports.getFriendsForUser = function(req, res) {
 		}			
 	});
 }
+
+//get conversations for user
+exports.getConversationsForUser = function(req, res) {
+	models.User.findOne( {
+		uuid: req.params.uuid
+	}, function(err, user) {
+		if (err) throw err;
+		if (!user) {
+			res.json({ success: false, message: 'Get failed! User not found.' });
+		}
+		else {
+			models.User.find( { 
+				uuid: { $in: user.conversations } 
+			}, function(err, conversations) {
+				if (err) throw err;
+				if (!conversations) {
+					res.json({
+						success: true,
+						message: 'No Conversations Found',
+					});
+				}
+				else {
+					var conversationObjects = [];
+					for (var index in conversations) {
+						var conversation = conversations[index];
+						if (err) {
+							throw err;
+						}
+						var conversationObject = { 
+							"uuid" : conversation.uuid, "title" : conversation.title, "userUuids" : conversation.userUuids 
+						};
+						conversationObjects.push(conversationObject);
+					}
+					res.json({
+						success: true,
+						message: 'Conversations successfully found',
+						conversations: conversationObjects
+					});
+				}
+			});
+		}			
+	});
+}
+

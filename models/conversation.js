@@ -5,6 +5,7 @@ var conversationSchema = new mongoose.Schema({
 	created_at: Date,
 	updated_at: Date,
 	userUuids: [String],
+  title: String,
 	messageUuids: [String]
 });
 

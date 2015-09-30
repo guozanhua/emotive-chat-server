@@ -1,9 +1,9 @@
 //require dependencies
 var express = require('express');
+	models = require('./models'),
 	routes = require('./routes'),
 	http = require('http'),
 	path = require('path'),
-	models = require('./models'),
 	dbUrl = process.env.MONGOHQ_URL || 'mongodb://localhost:27017/chat';
 
 //mongoose
@@ -157,12 +157,19 @@ app.all('/api/*', function(req, res, next) {
 	}
 });
 
-//REST API routes
+//User API routes
 
 app.put('/api/users/:uuid', routes.userAPI.updateUser);
 app.get('/api/users', routes.userAPI.getUsers);
 app.get('/api/users/:uuid', routes.userAPI.getUser);
 app.get('/api/users/:uuid/friends', routes.userAPI.getFriendsForUser);
+app.get('/api/users/:uuid/conversations', routes.userAPI.getConversationsForUser);
+
+//Conversation API routes
+
+app.post('/api/conversations', routes.conversationAPI.createNewConversation);
+app.get('/api/conversations/:uuid', routes.conversationAPI.getConversation);
+app.put('/api/conversations/:uuid', routes.conversationAPI.updateConversation);
 
 //catch-all error 404 response
 app.all('*', function(req, res) {
