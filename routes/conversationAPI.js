@@ -1,21 +1,27 @@
-//create new conversation
-//make sure said conversation doesn't already exist by checking uuids of members
+//create new conversation. if conversation already exists, return that w/ last 10 messages
 exports.createNewConversation = function(req, res) {
 	process.nextTick(function() {
 		models.Conversation.findOne( {
-			userUuids: req.body.userUuids
+			userUuids: { $size: req.body.userUuids.length, $in: req.body.userUuids }
 		}, function(err, conversation) {
 			if (err) throw err;
 			if (conversation) {
-				var oldConversation = {
-					"userUuids": conversation.userUuids,
-					"title": conversation.title,
-					"updated_at": conversation.updated_at
-				};
-				res.json({
-					success: false,
-					message: 'Conversation already exists',
-					conversation: oldConversation
+				//body param to find out how recent messages should be
+				models.Messages.find( {
+					uuid: { $query: { $size: 10, $in: conversation.messageUuids }, $orderby: { updated_at: 1 } }
+				}, function(err, messages) {
+					if (err) throw err;
+					var oldConversation = {
+						"userUuids": conversation.userUuids,
+						"title": conversation.title,
+						"messages": messages,
+						"updated_at": conversation.updated_at
+					};
+					res.json({
+						success: false,
+						message: 'Conversation already exists',
+						conversation: oldConversation
+					});
 				});
 			}
 			else {
@@ -44,7 +50,7 @@ exports.createNewConversation = function(req, res) {
 	});
 };
 
-//get particular conversation
+//get particular conversation with given # messages
 exports.getConversation = function(req, res) {
 	models.Conversation.findOne( {
 		uuid: req.params.uuid
@@ -54,23 +60,27 @@ exports.getConversation = function(req, res) {
 			res.json({ success: false, message: 'Get failed! Conversation not found.' });
 		}
 		else {
-			//use req.query.param to find how recent the messages should be
-			var oldConversation = {
-				"userUuids": conversation.userUuids,
-				"title": conversation.title,
-				"updated_at": conversation.updated_at
-			};
-			res.json({
-				success: true,
-				message: 'Conversation successfully found!',
-				conversation: oldConversation
+			models.Messages.find( {
+				uuid: { $query: { $size: req.query.recentMessagesCount, $in: conversation.messageUuids }, $orderby: { updated_at: 1 } }
+			}, function(err, messages) {
+				if (err) throw err;
+				var conversationObject = {
+					"userUuids": conversation.userUuids,
+					"title": conversation.title,
+					"messages": messages,
+					"updated_at": conversation.updated_at
+				};
+				res.json({
+					success: true,
+					message: 'Conversation successfully found',
+					conversation: conversationObject
+				});
 			});
 		}
 	});
 };
 
 // update conversation
-//need to make sure that there aren't 2 conversations with the same people
 exports.updateConversation = function(req, res) {
 	models.Conversation.findOne( {
 		uuid: req.params.uuid
@@ -83,31 +93,32 @@ exports.updateConversation = function(req, res) {
 			if (req.body.title) {
 				conversation.title = req.body.title;
 			}
-			else if (req.body.userUuids) {
+			if (req.body.userUuids) {
 				models.Conversation.findOne({
-					userUuids: req.body.userUuids
+					uuid: req.body.uuid
 				}, function(err, matchingConversation) {
 					if (err) throw err;
-					if (matchingConversation) {
-						res.json({
-							success: false,
-							message: 'Adding users failed because conversation already exists',
-							matchingConversationUuid: matchingConversation.uuid
-						});
-					}
-					else {
+					if (!matchingConversation) {
 						conversation.userUuids = req.body.userUuids;
 					}
+					conversation.save(function(err) {
+						if (err) throw err;
+						res.json({
+							success: true,
+							message: 'Conversation successfully updated!'
+						});
+					});
 				});
 			}
-
-			conversation.save(function(err) {
-				if (err) throw err;
-				res.json({
-					success: true,
-					message: 'Conversation successfully updated!',
+			else {
+				conversation.save(function(err) {
+					if (err) throw err;
+					res.json({
+						success: true,
+						message: 'Conversation successfully updated!',
+					});
 				});
-			});
+			}
 		}
 	});
 };
