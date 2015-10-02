@@ -1,4 +1,4 @@
-//create new conversation. if conversation already exists, return that w/ last 10 messages
+//create new conversation. if conversation already exists, return that w/ last 20 messages
 exports.createNewConversation = function(req, res) {
 	process.nextTick(function() {
 		models.Conversation.findOne( {
@@ -6,9 +6,8 @@ exports.createNewConversation = function(req, res) {
 		}, function(err, conversation) {
 			if (err) throw err;
 			if (conversation) {
-				//body param to find out how recent messages should be
 				models.Messages.find( {
-					uuid: { $query: { $size: 10, $in: conversation.messageUuids }, $orderby: { updated_at: 1 } }
+					uuid: { $query: { $in: conversation.messageUuids }, $orderby: { updated_at: 1 } }
 				}, function(err, messages) {
 					if (err) throw err;
 					var oldConversation = {
@@ -61,7 +60,7 @@ exports.getConversation = function(req, res) {
 		}
 		else {
 			models.Messages.find( {
-				uuid: { $query: { $size: req.query.recentMessagesCount, $in: conversation.messageUuids }, $orderby: { updated_at: 1 } }
+				uuid: { $query: { $in: conversation.messageUuids, updated_at: { $gt: req.query.lastUpdateTime } }, $orderby: { updated_at: 1 } }
 			}, function(err, messages) {
 				if (err) throw err;
 				var conversationObject = {
