@@ -218,7 +218,6 @@ exports.getConversationsForUser = function(req, res) {
 						var conversationObject = {
 							"userUuids": conversation.userUuids,
 							"title": conversation.title,
-							"messages": messages,
 							"updated_at": conversation.updated_at
 						};
 						conversationObjects.push(conversationObject);
