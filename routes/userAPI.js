@@ -218,6 +218,7 @@ exports.getConversationsForUser = function(req, res) {
 						models.User.find( {
 							uuid: { $in: conversation.userUuids }
 						}, function(err, usersInConversation) {
+							if (err) throw err;
 							var userObjects = [];
 							for (var userInConversation in usersInConversation) {
 								var userObject = {
