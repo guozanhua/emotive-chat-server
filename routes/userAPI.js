@@ -215,18 +215,33 @@ exports.getConversationsForUser = function(req, res) {
 					var conversationObjects = [];
 					for (var index in conversations) {
 						var conversation = conversations[index];
-						var conversationObject = {
-							"userUuids": conversation.userUuids,
-							"title": conversation.title,
-							"updated_at": conversation.updated_at
-						};
-						conversationObjects.push(conversationObject);
+						models.User.find( {
+							uuid: { $in: conversation.userUuids }
+						}, function(err, usersInConversation) {
+							var userObjects = [];
+							for (var userInConversation in usersInConversation) {
+								var userObject = {
+									"uuid": userInConversation.uuid,
+									"firstName": userInConversation.firstName,
+									"lastName": userInConversation.lastName
+								};
+								userObjects.push(userObject);
+							}
+							var conversationObject = {
+								"users": userObjects,
+								"title": conversation.title,
+								"updated_at": conversation.updated_at
+							};
+							conversationObjects.push(conversationObject);
+							if (index == conversations.length-1) {
+								res.json({
+									success: true,
+									message: 'Conversations successfully found',
+									conversations: conversationObjects
+								});
+							}
+						});
 					}
-					res.json({
-						success: true,
-						message: 'Conversations successfully found',
-						conversations: conversationObjects
-					});
 				}
 			});
 		}			
