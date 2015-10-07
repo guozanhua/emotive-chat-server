@@ -105,7 +105,7 @@ exports.getUsers = function(req, res) {
 	else {
 		models.User.find({}, function(err, users) {
 			if (err) throw err;
-			if (!users) {
+			if (!users || users.count == 0) {
 				res.json({
 					success: false,
 					message: 'No users found'
@@ -201,18 +201,19 @@ exports.getConversationsForUser = function(req, res) {
 			res.json({ success: false, message: 'Get failed! User not found.' });
 		}
 		else {
-			models.Conversation.find( { 
-				uuid: { $query: { $in: user.conversations }, $orderby: { updated_at: 1 } }
-			}, function(err, conversations) {
+			models.Conversation.find({ uuid: { $in: user.conversations } })
+			.sort({'updated_at': -1})
+			.find(function(err, conversations) {
 				if (err) throw err;
-				if (!conversations) {
+				if (!conversations || conversations.length == 0) {
 					res.json({
 						success: false,
-						message: 'No Conversations Found',
+						message: 'No conversations found',
 					});
 				}
 				else {
 					var conversationObjects = [];
+					console.log('got here');
 					for (var index in conversations) {
 						var conversation = conversations[index];
 						models.User.find( {
