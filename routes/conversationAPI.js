@@ -6,9 +6,9 @@ exports.createNewConversation = function(req, res) {
 		}, function(err, conversation) {
 			if (err) throw err;
 			if (conversation) {
-				models.Messages.find( {
-					uuid: { $query: { $in: conversation.messageUuids }, $orderby: { updated_at: 1 } }
-				}, function(err, messages) {
+				models.Messages.find({ uuid: { $in: conversation.messageUuids } })
+				.sort({'updated_at': 1})
+				.find(function(err, messages) {
 					if (err) throw err;
 					var oldConversation = {
 						"userUuids": conversation.userUuids,
@@ -59,9 +59,9 @@ exports.getConversation = function(req, res) {
 			res.json({ success: false, message: 'Get failed! Conversation not found.' });
 		}
 		else {
-			models.Messages.find( {
-				uuid: { $query: { $in: conversation.messageUuids, updated_at: { $gt: req.query.lastUpdateTime } }, $orderby: { updated_at: 1 } }
-			}, function(err, messages) {
+			models.Messages.find({ uuid: { $in: conversation.messageUuids, updated_at: { $gt: req.query.lastUpdateTime } } })
+			.sort({'updated_at': 1})
+			.find(function(err, messages) {
 				if (err) throw err;
 				var conversationObject = {
 					"userUuids": conversation.userUuids,
