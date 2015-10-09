@@ -4,6 +4,7 @@ var messageSchema = new mongoose.Schema({
 	uuid: String,
 	created_at: Date,
 	updated_at: Date,
+  senderUUID: String,
 	wooUUID: String,
 	text: String
 });
