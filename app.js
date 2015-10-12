@@ -1,10 +1,13 @@
 //require dependencies
 var express = require('express');
-	models = require('./models'),
-	routes = require('./routes'),
-	http = require('http'),
-	path = require('path'),
-	dbUrl = process.env.MONGOHQ_URL || 'mongodb://localhost:27017/chat';
+var routes = require('./routes');
+var http = require('http');
+var path = require('path');
+var dbUrl = process.env.MONGOHQ_URL || 'mongodb://localhost:27017/chat';
+
+//global variables
+models = require('./models');
+staticFilePath = __dirname + '/public/';
 
 //mongoose
 var mongoose = require('mongoose');
@@ -170,6 +173,10 @@ app.get('/api/users/:uuid/conversations', routes.userAPI.getConversationsForUser
 app.post('/api/conversations', routes.conversationAPI.createNewConversation);
 app.get('/api/conversations/:uuid', routes.conversationAPI.getConversation);
 app.put('/api/conversations/:uuid', routes.conversationAPI.updateConversation);
+
+//Woo API routes
+app.get('/api/woos', routes.wooAPI.getWoos);
+app.get('/api/woos/:uuid', routes.wooAPI.getWoo);
 
 //catch-all error 404 response
 app.all('*', function(req, res) {

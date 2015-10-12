@@ -5,24 +5,35 @@ exports.getWoos = function(req, res) {
 		//category
 	}, function(err, woos) {
 		if (err) throw err;
-		if (!woos) {
+		if (!woos || woos.length == 0) {
 			res.json({ success: false, message: 'Get failed! Woos not found.' });
 		}
 		else {
 			var wooObjects = []
-			for (var i = 0; i < woos.count; i++) {
+			for (var i = 0; i < woos.length; i++) {
 				var currentWoo = woos[i];
-				for (var j = 0; j < currentWoo.orderedImageFileNames.length; j++) {
-					var filePath = "/img/" + currentWoo.orderedImageFileNames[i]
-					var img = fs.readFileSync(filePath);
-					res.writeHead(200, {'Content-Type': 'image/png'});
+				var wooObject = {};
+				wooObject.uuid = currentWoo.uuid;
+				wooObject.orderedImages = [];
+				if (req.query.firstImageOnly) {
+					var filePath = staticFilePath + "img/" + currentWoo.orderedImageFileNames[0];
+					var img = fs.readFileSync(filePath, "base64");
+					wooObject.orderedImages.push(img);
 				}
+				else {
+					for (var j = 0; j < currentWoo.orderedImageFileNames.length; j++) {
+					var filePath = staticFilePath + "img/" + currentWoo.orderedImageFileNames[i];
+						var img = fs.readFileSync(filePath);
+						wooObject.orderedImages.push(img);
+					}
+				}
+				wooObjects.push(wooObject);
 			}
 			res.json({
 				success: true,
 				message: 'Woos successfully found',
 				woos: wooObjects
-			})
+			});
 		}
 	});
 }

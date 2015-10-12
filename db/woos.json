@@ -1,0 +1,37 @@
+[
+	{
+	  "uuid": "7e6b7471-b32f-4eda-909a-0d2f87888e95",
+	  "name": "bunny",
+	  "orderedImageFileNames": ["bunny.png"]
+	},
+	{
+		"uuid": "37901e5a-2d84-40be-ab6c-2d8d41a2e021",
+		"name": "chicken",
+		"orderedImageFileNames": ["chicken.png"]
+	}
+	{
+		"uuid": "322c31c0-1230-4370-b525-c6d8478635ca",
+		"name": "dog",
+		"orderedImageFileNames": ["dog.png"]
+	}
+	{
+		"uuid": "aca5a9c5-98fd-4fd9-bb11-eb01a2c19c5d",
+		"name": "elf",
+		"orderedImageFileNames": ["elf.png"]
+	}
+	{
+		"uuid": "b68745c5-83f9-4ee0-85d5-a5b35c21f9c7",
+		"name": "pirate",
+		"orderedImageFileNames": ["pirate.png"]
+	}
+	{
+		"uuid": "d0fbb2e7-2ac9-4b69-8646-9c23f0e64f00",
+		"name": "rudolph",
+		"orderedImageFileNames": ["rudolph.png"]
+	}
+	{
+		"uuid": "203515d1-8c1e-4aa3-8f1b-e06334b9e830",
+		"name": "santa",
+		"orderedImageFileNames": ["santa.png"]
+	}
+]
