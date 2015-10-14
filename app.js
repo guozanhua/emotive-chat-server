@@ -1,12 +1,12 @@
 //require dependencies
 var express = require('express');
+var models = require('./models');
 var routes = require('./routes');
 var http = require('http');
 var path = require('path');
 var dbUrl = process.env.MONGOHQ_URL || 'mongodb://localhost:27017/chat';
 
 //global variables
-models = require('./models');
 staticFilePath = __dirname + '/public/';
 
 //mongoose
@@ -17,7 +17,6 @@ db.on('error', console.error.bind(console, 'connection error:'));
 db.once('open', function (callback) {
 
 });
-
 
 //middleware
 var logger = require('morgan'),
@@ -33,7 +32,7 @@ app.locals.appTitle = 'Chat';
 
 //middleware that exposes Mongoose models in each Express.js route via a req object
 app.use(function(req, res, next) {
-	if (!models.User) return next(new Error('No models.'));
+	if (!models.User || !models.Conversation || !models.Woo || !models.Message) return next(new Error('No models.'));
 	req.models = models;
 	return next();
 });
@@ -135,6 +134,13 @@ app.post('/api/authenticate', function(req, res) {
 			}
 		}
 	});
+});
+
+//static images
+app.get('/api/static/:filename', function(req, res) {
+	var filePath = staticFilePath + "img/" + req.params.filename;
+	res.sendFile(filePath, "base64");
+	//var img = fs.readFileSync(filePath, "base64");
 });
 
 //add authentication middleware middleware -- NEEDS TO BE AFTER api/authenticate

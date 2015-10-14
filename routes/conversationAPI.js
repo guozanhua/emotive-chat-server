@@ -1,12 +1,12 @@
 //create new conversation. if conversation already exists, return that w/ last 20 messages
 exports.createNewConversation = function(req, res) {
 	process.nextTick(function() {
-		models.Conversation.findOne( {
+		req.models.Conversation.findOne( {
 			userUuids: { $size: req.body.userUuids.length, $in: req.body.userUuids }
 		}, function(err, conversation) {
 			if (err) throw err;
 			if (conversation) {
-				models.Messages.find({ uuid: { $in: conversation.messageUuids } })
+				req.models.Messages.find({ uuid: { $in: conversation.messageUuids } })
 				.sort({'updated_at': 1})
 				.find(function(err, messages) {
 					if (err) throw err;
@@ -24,7 +24,7 @@ exports.createNewConversation = function(req, res) {
 				});
 			}
 			else {
-				var newConversation = new models.Conversation();
+				var newConversation = new req.models.Conversation();
 				newConversation.uuid = uuident.v4();
 				newConversation.userUuids = req.body.userUuids;
 
@@ -51,7 +51,7 @@ exports.createNewConversation = function(req, res) {
 
 //get particular conversation with given # messages
 exports.getConversation = function(req, res) {
-	models.Conversation.findOne( {
+	req.models.Conversation.findOne( {
 		uuid: req.params.uuid
 	}, function(err, conversation) {
 		if (err) throw err;
@@ -59,7 +59,7 @@ exports.getConversation = function(req, res) {
 			res.json({ success: false, message: 'Get failed! Conversation not found.' });
 		}
 		else {
-			models.Messages.find({ uuid: { $in: conversation.messageUuids, updated_at: { $gt: req.query.lastUpdateTime } } })
+			req.models.Messages.find({ uuid: { $in: conversation.messageUuids, updated_at: { $gt: req.query.lastUpdateTime } } })
 			.sort({'updated_at': 1})
 			.find(function(err, messages) {
 				if (err) throw err;
@@ -81,7 +81,7 @@ exports.getConversation = function(req, res) {
 
 // update conversation
 exports.updateConversation = function(req, res) {
-	models.Conversation.findOne( {
+	req.models.Conversation.findOne( {
 		uuid: req.params.uuid
 	}, function(err, conversation) {
 		if (err) throw err;
@@ -93,7 +93,7 @@ exports.updateConversation = function(req, res) {
 				conversation.title = req.body.title;
 			}
 			if (req.body.userUuids) {
-				models.Conversation.findOne({
+				req.models.Conversation.findOne({
 					uuid: req.body.uuid
 				}, function(err, matchingConversation) {
 					if (err) throw err;

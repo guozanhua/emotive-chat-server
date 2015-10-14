@@ -1,6 +1,6 @@
 // update users
 exports.updateUser = function(req, res) {
-	models.User.findOne( {
+	req.models.User.findOne( {
 		uuid: req.params.uuid
 	}, function(err, user) {
 		if (err) throw err;
@@ -12,7 +12,7 @@ exports.updateUser = function(req, res) {
 			if (req.body.newFriends) {
 				for (var i = 0; i < req.body.newFriends.length; i++) {
 					var friendUUID = req.body.newFriends[i];
-					models.User.findOne( {
+					req.models.User.findOne( {
 						uuid: friendUUID
 					}, function(err, friend) {
 						if (err) throw err;
@@ -65,7 +65,7 @@ exports.updateUser = function(req, res) {
 exports.getUsers = function(req, res) {
 	//get all users except friends of given user
 	if (req.query.ignoreFriendsOfUserWithUuid) {
-		models.User.findOne( {
+		req.models.User.findOne( {
 			uuid: req.query.ignoreFriendsOfUserWithUuid
 		}, function(err, user) {
 			if (err) throw err;
@@ -77,7 +77,7 @@ exports.getUsers = function(req, res) {
 				for (var index in user.friends) {
 					uuidsToExclude.push(user.friends[index]);
 				}
-				models.User.find( { 
+				req.models.User.find( { 
 					uuid: { $nin: uuidsToExclude } 
 				}, function(err, potentialFriends) {
 					if (err) {
@@ -103,7 +103,7 @@ exports.getUsers = function(req, res) {
 	}
 	//get all users
 	else {
-		models.User.find({}, function(err, users) {
+		req.models.User.find({}, function(err, users) {
 			if (err) throw err;
 			if (!users || users.count == 0) {
 				res.json({
@@ -124,7 +124,7 @@ exports.getUsers = function(req, res) {
 
 //get a specific user
 exports.getUser = function(req, res) {
-	models.User.findOne( {
+	req.models.User.findOne( {
 		uuid: req.params.uuid
 	}, function(err, user) {
 		if (err) throw err;
@@ -150,7 +150,7 @@ exports.getUser = function(req, res) {
 
 //get friends for user
 exports.getFriendsForUser = function(req, res) {
-	models.User.findOne( {
+	req.models.User.findOne( {
 		uuid: req.params.uuid
 	}, function(err, user) {
 		if (err) throw err;
@@ -158,7 +158,7 @@ exports.getFriendsForUser = function(req, res) {
 			res.json({ success: false, message: 'Get failed! User not found.' });
 		}
 		else {
-			models.User.find( { 
+			req.models.User.find( { 
 				uuid: { $in: user.friends } 
 			}, function(err, friends) {
 				if (err) throw err;
@@ -193,7 +193,7 @@ exports.getFriendsForUser = function(req, res) {
 
 //get conversations for user
 exports.getConversationsForUser = function(req, res) {
-	models.User.findOne( {
+	req.models.User.findOne( {
 		uuid: req.params.uuid
 	}, function(err, user) {
 		if (err) throw err;
@@ -201,7 +201,7 @@ exports.getConversationsForUser = function(req, res) {
 			res.json({ success: false, message: 'Get failed! User not found.' });
 		}
 		else {
-			models.Conversation.find({ uuid: { $in: user.conversations } })
+			req.models.Conversation.find({ uuid: { $in: user.conversations } })
 			.sort({'updated_at': -1})
 			.find(function(err, conversations) {
 				if (err) throw err;
@@ -216,7 +216,7 @@ exports.getConversationsForUser = function(req, res) {
 					console.log('got here');
 					for (var index in conversations) {
 						var conversation = conversations[index];
-						models.User.find( {
+						req.models.User.find( {
 							uuid: { $in: conversation.userUuids }
 						}, function(err, usersInConversation) {
 							if (err) throw err;
