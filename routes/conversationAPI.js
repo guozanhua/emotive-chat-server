@@ -1,6 +1,7 @@
 //create new conversation. if conversation already exists, return that w/ last 20 messages
 exports.createNewConversation = function(req, res) {
 	process.nextTick(function() {
+		this looks for right size and ONE right hit in array
 		req.models.Conversation.findOne({
 			userUuids: { $size: req.body.userUuids.length, $in: req.body.userUuids }
 		}, function(err, conversation) {
@@ -16,9 +17,10 @@ exports.createNewConversation = function(req, res) {
 					conversation.messageUuids.push(newMessage.uuid);
 					conversation.save(function(err) {
 						if (err) throw err;
-						req.models.Messages.find({ uuid: { $in: conversation.messageUuids } })
+						req.models.Message.find({ uuid: { $in: conversation.messageUuids } })
 						.sort({'updated_at': 1})
 						.find(function(err, messages) {
+							senduserobject instead of uuid
 							var oldConversation = {
 								"userUuids": conversation.userUuids,
 								"title": conversation.title,
@@ -51,16 +53,32 @@ exports.createNewConversation = function(req, res) {
 
 						newConversation.save(function(err) {
 							if (err) throw err;
-							var conversationObject = {
-								"userUuids": newConversation.userUuids,
-								"messages": newConversation.messageUuids,
-								"updated_at": newConversation.updated_at
-							}
-							res.json({
-								success: true,
-								message: 'Conversation successfully created',
-								conversation: conversationObject
+
+							req.models.User.find({
+								uuid: { $in: newConversation.userUuids } 
+							}, function(err, users) {
+								for (var i = 0; i < users.length; i++) {
+									var user = users[i];
+									user.conversations.push(newConversation.uuid);
+									user.save(function(err) {
+										if (err) throw err;
+										if (i == users.length-1) {
+											send user object instead of uuid
+											var conversationObject = {
+												"userUuids": newConversation.userUuids,
+												"messages": newConversation.messageUuids,
+												"updated_at": newConversation.updated_at
+											}
+											res.json({
+												success: true,
+												message: 'Conversation successfully created',
+												conversation: conversationObject
+											});
+										}
+									});
+								}
 							});
+
 						});
 					});
 				}

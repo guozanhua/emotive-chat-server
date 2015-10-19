@@ -213,7 +213,6 @@ exports.getConversationsForUser = function(req, res) {
 				}
 				else {
 					var conversationObjects = [];
-					console.log('got here');
 					for (var index in conversations) {
 						var conversation = conversations[index];
 						req.models.User.find( {
