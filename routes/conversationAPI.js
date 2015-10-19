@@ -1,25 +1,36 @@
 //create new conversation. if conversation already exists, return that w/ last 20 messages
 exports.createNewConversation = function(req, res) {
 	process.nextTick(function() {
-		req.models.Conversation.findOne( {
+		req.models.Conversation.findOne({
 			userUuids: { $size: req.body.userUuids.length, $in: req.body.userUuids }
 		}, function(err, conversation) {
 			if (err) throw err;
 			if (conversation) {
-				req.models.Messages.find({ uuid: { $in: conversation.messageUuids } })
-				.sort({'updated_at': 1})
-				.find(function(err, messages) {
+				var newMessage = new req.models.Message();
+				newMessage.uuid = uuident.v4();
+				newMessage.senderUuid = req.body.senderUuid;
+				newMessage.wooUuid = req.body.wooUuid;
+
+				newMessage.save(function(err) {
 					if (err) throw err;
-					var oldConversation = {
-						"userUuids": conversation.userUuids,
-						"title": conversation.title,
-						"messages": messages,
-						"updated_at": conversation.updated_at
-					};
-					res.json({
-						success: false,
-						message: 'Conversation already exists',
-						conversation: oldConversation
+					conversation.messageUuids.push(newMessage.uuid);
+					conversation.save(function(err) {
+						if (err) throw err;
+						req.models.Messages.find({ uuid: { $in: conversation.messageUuids } })
+						.sort({'updated_at': 1})
+						.find(function(err, messages) {
+							var oldConversation = {
+								"userUuids": conversation.userUuids,
+								"title": conversation.title,
+								"messages": messages,
+								"updated_at": conversation.updated_at
+							}
+							res.json({
+								success: false,
+								message: 'Conversation already exists',
+								conversation: oldConversation
+							});
+						});
 					});
 				});
 			}
@@ -29,12 +40,27 @@ exports.createNewConversation = function(req, res) {
 				newConversation.userUuids = req.body.userUuids;
 
 				if (newConversation.uuid && newConversation.userUuids) {
-					newConversation.save(function(err) {
+					var newMessage = new req.models.Message();
+					newMessage.uuid = uuident.v4();
+					newMessage.senderUuid = req.body.senderUuid;
+					newMessage.wooUuid = req.body.wooUuid;
+
+					newMessage.save(function(err) {
 						if (err) throw err;
-						res.json({
-							success: true,
-							message: 'Conversation successfully created',
-							conversation: newConversation
+						newConversation.messageUuids.push(newMessage.uuid);
+
+						newConversation.save(function(err) {
+							if (err) throw err;
+							var conversationObject = {
+								"userUuids": newConversation.userUuids,
+								"messages": newConversation.messageUuids,
+								"updated_at": newConversation.updated_at
+							}
+							res.json({
+								success: true,
+								message: 'Conversation successfully created',
+								conversation: conversationObject
+							});
 						});
 					});
 				}
