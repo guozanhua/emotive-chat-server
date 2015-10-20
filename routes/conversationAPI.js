@@ -20,17 +20,33 @@ exports.createNewConversation = function(req, res) {
 						req.models.Message.find({ uuid: { $in: conversation.messageUuids } })
 						.sort({'updated_at': 1})
 						.find(function(err, messages) {
-							senduserobject instead of uuid
-							var oldConversation = {
-								"userUuids": conversation.userUuids,
-								"title": conversation.title,
-								"messages": messages,
-								"updated_at": conversation.updated_at
-							}
-							res.json({
-								success: false,
-								message: 'Conversation already exists',
-								conversation: oldConversation
+							req.models.User.find({ 
+								uuid: { $in: conversation.userUuids } 
+							}, function(err, users) {
+								if (err) throw err;
+								var userObjects = []
+								for (var i = 0; i < users.length; i++) {
+									var user = users[i];
+									var userObject = {
+										"uuid": user.uuid,
+										"firstName": user.firstName,
+										"lastName": user.lastName
+									}
+									userObjects.push(userObject);
+									if (i == users.length - 1) {
+										var oldConversation = {
+											"userObjects": userObjects,
+											"title": conversation.title,
+											"messages": messages,
+											"updated_at": conversation.updated_at
+										}
+										res.json({
+											success: false,
+											message: 'Conversation already exists',
+											conversation: oldConversation
+										});
+									}
+								}
 							});
 						});
 					});
@@ -57,15 +73,22 @@ exports.createNewConversation = function(req, res) {
 							req.models.User.find({
 								uuid: { $in: newConversation.userUuids } 
 							}, function(err, users) {
+								var userObjects = []
 								for (var i = 0; i < users.length; i++) {
 									var user = users[i];
 									user.conversations.push(newConversation.uuid);
 									user.save(function(err) {
 										if (err) throw err;
+										var userObject = {
+											"uuid": user.uuid,
+											"firstName": user.firstName,
+											"lastName": user.lastName
+										}
+										userObjects.push(userObject);
 										if (i == users.length-1) {
 											send user object instead of uuid
 											var conversationObject = {
-												"userUuids": newConversation.userUuids,
+												"userObjects": userObjects,
 												"messages": newConversation.messageUuids,
 												"updated_at": newConversation.updated_at
 											}
