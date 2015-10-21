@@ -215,12 +215,14 @@ exports.getConversationsForUser = function(req, res) {
 					var conversationObjects = [];
 					for (var index in conversations) {
 						var conversation = conversations[index];
+						var sentConversationIndex = 0;
 						req.models.User.find( {
 							uuid: { $in: conversation.userUuids }
 						}, function(err, usersInConversation) {
 							if (err) throw err;
 							var userObjects = [];
-							for (var userInConversation in usersInConversation) {
+							for (var index2 in usersInConversation) {
+								var userInConversation = usersInConversation[index2];
 								var userObject = {
 									"uuid": userInConversation.uuid,
 									"firstName": userInConversation.firstName,
@@ -229,17 +231,20 @@ exports.getConversationsForUser = function(req, res) {
 								userObjects.push(userObject);
 							}
 							var conversationObject = {
-								"users": userObjects,
+								"userObjects": userObjects,
 								"title": conversation.title,
 								"updated_at": conversation.updated_at
 							};
 							conversationObjects.push(conversationObject);
-							if (index == conversations.length-1) {
+							if (sentConversationIndex == conversations.length-1) {
 								res.json({
 									success: true,
 									message: 'Conversations successfully found',
 									conversations: conversationObjects
 								});
+							}
+							else {
+								sentConversationIndex++;
 							}
 						});
 					}

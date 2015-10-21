@@ -1,9 +1,8 @@
 //create new conversation. if conversation already exists, return that w/ last 20 messages
 exports.createNewConversation = function(req, res) {
 	process.nextTick(function() {
-		this looks for right size and ONE right hit in array
 		req.models.Conversation.findOne({
-			userUuids: { $size: req.body.userUuids.length, $in: req.body.userUuids }
+			userUuids: req.body.userUuids
 		}, function(err, conversation) {
 			if (err) throw err;
 			if (conversation) {
@@ -56,7 +55,6 @@ exports.createNewConversation = function(req, res) {
 				var newConversation = new req.models.Conversation();
 				newConversation.uuid = uuident.v4();
 				newConversation.userUuids = req.body.userUuids;
-
 				if (newConversation.uuid && newConversation.userUuids) {
 					var newMessage = new req.models.Message();
 					newMessage.uuid = uuident.v4();
@@ -66,14 +64,13 @@ exports.createNewConversation = function(req, res) {
 					newMessage.save(function(err) {
 						if (err) throw err;
 						newConversation.messageUuids.push(newMessage.uuid);
-
 						newConversation.save(function(err) {
 							if (err) throw err;
-
 							req.models.User.find({
 								uuid: { $in: newConversation.userUuids } 
 							}, function(err, users) {
 								var userObjects = []
+								var saveIndex = 0;
 								for (var i = 0; i < users.length; i++) {
 									var user = users[i];
 									user.conversations.push(newConversation.uuid);
@@ -85,8 +82,7 @@ exports.createNewConversation = function(req, res) {
 											"lastName": user.lastName
 										}
 										userObjects.push(userObject);
-										if (i == users.length-1) {
-											send user object instead of uuid
+										if (saveIndex == users.length-1) {
 											var conversationObject = {
 												"userObjects": userObjects,
 												"messages": newConversation.messageUuids,
@@ -98,10 +94,12 @@ exports.createNewConversation = function(req, res) {
 												conversation: conversationObject
 											});
 										}
+										else {
+											saveIndex++;
+										}
 									});
 								}
 							});
-
 						});
 					});
 				}
