@@ -112,7 +112,7 @@ exports.createNewConversation = function(req, res) {
 			}
 		});
 	});
-};
+}
 
 //get particular conversation with given # messages
 exports.getConversation = function(req, res) {
@@ -128,6 +128,56 @@ exports.getConversation = function(req, res) {
 			.sort({'updated_at': 1})
 			.find(function(err, messages) {
 				if (err) throw err;
+				var messageObjects = [];
+				var messageObjectsIndex = 0;
+				for (var index in messages) {
+					var currentMessage = messages[index];
+					req.models.User.findOne({ 
+						uuid: currentMessage.senderUuid 
+					}, function(err, user) {
+						if (err) throw err;
+						if (!user) {
+							res.json({ success: false, message: 'Get conversation failed! Sender not found.' });
+						}
+						else {
+							var userObject = {
+								"uuid": user.uuid,
+								"firstName": user.firstName,
+								"lastName": user.lastName
+							}
+							req.models.Woo.findOne({
+								uuid: currentMessage.wooUuid
+							}, function(err, woo) {
+								if (err) throw err;
+								if (!woo) {
+									res.json({ success: false, message: 'Get conversation failed! Woo not found.' });
+								}
+								else {
+									var messageObject = {
+										"uuid": currentMessage.uuid,
+										"userObject": userObject,
+										"woo": woo
+									}
+									messageObjects.push(messageObject);
+									if (messageObjectsIndex == messages.length-1) {
+										res.json({
+											success: true,
+											message: 'Get conversation succeeded! Woo found',
+											uuid: conversation.uuid,
+											title: conversation.title,
+											updated_at: conversation.updated_at,
+											messages: messageObjects
+										});
+									}
+									else {
+										messageObjectsIndex++;
+									}
+								}
+							});
+						}
+					});
+				}
+
 				var conversationObject = {
 					"userUuids": conversation.userUuids,
 					"title": conversation.title,
