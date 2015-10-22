@@ -124,7 +124,8 @@ exports.getConversation = function(req, res) {
 			res.json({ success: false, message: 'Get failed! Conversation not found.' });
 		}
 		else {
-			req.models.Messages.find({ uuid: { $in: conversation.messageUuids, updated_at: { $gt: req.query.lastUpdateTime } } })
+			var lastUpdatedDate = new Date(Date.parse(req.query.lastUpdatedDate))
+			req.models.Message.find({ uuid: { $in: conversation.messageUuids }, created_at: { $gt: lastUpdatedDate } })
 			.sort({'updated_at': 1})
 			.find(function(err, messages) {
 				if (err) throw err;
@@ -155,6 +156,7 @@ exports.getConversation = function(req, res) {
 								else {
 									var messageObject = {
 										"uuid": currentMessage.uuid,
+										"created_at": currentMessage.created_at,
 										"userObject": userObject,
 										"woo": woo
 									}
@@ -177,18 +179,6 @@ exports.getConversation = function(req, res) {
 						}
 					});
 				}
-
-				var conversationObject = {
-					"userUuids": conversation.userUuids,
-					"title": conversation.title,
-					"messages": messages,
-					"updated_at": conversation.updated_at
-				};
-				res.json({
-					success: true,
-					message: 'Conversation successfully found',
-					conversation: conversationObject
-				});
 			});
 		}
 	});
