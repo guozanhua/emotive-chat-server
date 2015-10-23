@@ -216,13 +216,45 @@ exports.updateConversation = function(req, res) {
 				});
 			}
 			else {
-				conversation.save(function(err) {
-					if (err) throw err;
-					res.json({
-						success: true,
-						message: 'Conversation successfully updated!',
+				if (req.body.senderUuid && req.body.conversationUuid) {
+					req.models.Conversation.findOne({
+						uuid: req.body.conversationUuid
+					}, function(err, conversation) {
+						if (err) throw err;
+						if (!conversation) {
+							res.json({ success: false, message: 'Update conversation failed! Conversation not found.' });
+						}
+						else {
+							if (req.body.wooUuid) {
+								req.models.Woo.findOne({
+									uuid: req.body.wooUuid
+								}, function(err, woo) {
+									if (err) throw err;
+									if (!woo) {
+										res.json({ success: false, message: 'Update conversation failed! Woo not found.' });
+									}
+									else {
+										var newMessage = new req.models.Message();
+										newMessage.uuid = uuident.v4();
+										newMessage.senderUuid = req.body.senderUuid;
+										newMessage.wooUuid = req.body.wooUuid;
+										newMessage.save(function(err) {
+											if (err) throw err;
+											conversation.messageUuids.push(newMessage.uuid);
+											conversation.save(function(err) {
+												if (err) throw err;
+												res.json({
+													success: true,
+													message: 'Conversation successfully updated'
+												});
+											});
+										});
+									}
+								});
+							}
+						}
 					});
-				});
+				}
 			}
 		}
 	});
