@@ -130,11 +130,11 @@ exports.getConversation = function(req, res) {
 			.find(function(err, messages) {
 				if (err) throw err;
 				var messageObjects = [];
-				var messageObjectsIndex = 0;
+				var messageObjectUserFindIndex = 0;
+				var messageObjectSendIndex = 0;
 				for (var index in messages) {
-					var currentMessage = messages[index];
 					req.models.User.findOne({ 
-						uuid: currentMessage.senderUuid 
+						uuid: messages[index].senderUuid 
 					}, function(err, user) {
 						if (err) throw err;
 						if (!user) {
@@ -147,7 +147,7 @@ exports.getConversation = function(req, res) {
 								"lastName": user.lastName
 							}
 							req.models.Woo.findOne({
-								uuid: currentMessage.wooUuid
+								uuid: messages[messageObjectUserFindIndex].wooUuid
 							}, function(err, woo) {
 								if (err) throw err;
 								if (!woo) {
@@ -155,13 +155,13 @@ exports.getConversation = function(req, res) {
 								}
 								else {
 									var messageObject = {
-										"uuid": currentMessage.uuid,
-										"created_at": currentMessage.created_at,
+										"uuid": messages[messageObjectSendIndex].uuid,
+										"created_at": messages[messageObjectSendIndex].created_at,
 										"userObject": userObject,
 										"woo": woo
 									}
 									messageObjects.push(messageObject);
-									if (messageObjectsIndex == messages.length-1) {
+									if (messageObjectSendIndex == messages.length-1) {
 										res.json({
 											success: true,
 											message: 'Get conversation succeeded! Woo found',
@@ -172,10 +172,11 @@ exports.getConversation = function(req, res) {
 										});
 									}
 									else {
-										messageObjectsIndex++;
+										messageObjectSendIndex++;
 									}
 								}
 							});
+							messageObjectUserFindIndex++;
 						}
 					});
 				}
