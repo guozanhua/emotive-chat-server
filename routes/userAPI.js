@@ -213,11 +213,11 @@ exports.getConversationsForUser = function(req, res) {
 				}
 				else {
 					var conversationObjects = [];
+					var sentConversationIndex = 0;
+
 					for (var index in conversations) {
-						var conversation = conversations[index];
-						var sentConversationIndex = 0;
 						req.models.User.find( {
-							uuid: { $in: conversation.userUuids }
+							uuid: { $in: conversations[index].userUuids }
 						}, function(err, usersInConversation) {
 							if (err) throw err;
 							var userObjects = [];
@@ -231,10 +231,10 @@ exports.getConversationsForUser = function(req, res) {
 								userObjects.push(userObject);
 							}
 							var conversationObject = {
-								"uuid": conversation.uuid,
+								"uuid": conversations[sentConversationIndex].uuid,
 								"userObjects": userObjects,
-								"title": conversation.title,
-								"updated_at": conversation.updated_at
+								"title": conversations[sentConversationIndex].title,
+								"updated_at": conversations[sentConversationIndex].updated_at
 							};
 							conversationObjects.push(conversationObject);
 							if (sentConversationIndex == conversations.length-1) {
